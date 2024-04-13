@@ -18,6 +18,8 @@ class Storekeeper(Worker):
 
     def get_order(self, order):
         print(f"Ваш заказ принят, кладовщик {self.username} собирает ваш заказ")
+        print("...")
+        print("Кладовщик собрал ваш заказ и ждет курьера, чтобы выдать заказ")
 
     def get_status(self):
         return self.__status

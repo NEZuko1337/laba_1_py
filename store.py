@@ -9,18 +9,28 @@ from provider import Provider
 from storekeeper import Storekeeper
 from user import User
 from worker import Worker
+from utils import random_cancelled_work
 
 
 class Store:
-    def __init__(self, store_id, coords: Tuple[int, int], stocks: List[Item]):
+    def __init__(self, store_id, coords: Tuple[int, int], stocks: List[Item], work_time: str):
         self.__store_id = store_id
         self.coords = coords
         self.__stocks = stocks
         self.__orders: List[Order] = []
         self.__workers: List[Worker] = []
+        self.work_time = work_time
+        self.__store_status = "Работает"
+        self.predicted_delivery_time = None
 
     def get_store_id(self):
         return self.__store_id
+
+    def get_store_status(self):
+        return self.__store_status
+
+    def set_store_status(self, status):
+        self.__store_status = status
 
     def send_request(self, provider: Provider, order: List[Item]) -> None:
         resp = provider.send_order(order)
@@ -44,32 +54,52 @@ class Store:
 
             self.set_courier(courier=courier, user_order=user_order)
             self.set_storekeeper(storekeeper=storekeeper, user_order=user_order)
-
+            rndm = random_cancelled_work()
             if not_in_store_items:
                 print(
-                    f"К сожалению некоторых товаров нет в наличии, мы доставим к вам все, кроме: {[item for item in not_in_store_items]}")
+                    f"Доставка {user_order.unique_id}:\n К сожалению некоторых товаров нет в наличии, мы можем доставить к вам все, кроме: {[item for item in not_in_store_items]}")
+                user_choise = input(f" Хотите ли вы {user.username}, чтобы мы доставили к вам имеющиеся товары (да/нет)\n")
+                while user_choise.lower not in ["нет", "да"]:
+                    if user_choise.lower() == "нет":
+                        user_order.delivery_status = "Отменен пользователем"
+                        user_order.picker = None
+                        user_order.courier = None
+                        self.__orders.append(user_order)
+                        return "ERROR", not_in_store_items
+                    elif user_choise.lower() == "да":
+                        storekeeper.get_order(user_order)
+                        # Считаем время доставки(оверол)
+                        # На один товар 45 секунд
+                        storekeeper_time = len(user_order.items) * 45
 
-            storekeeper.get_order(user_order)
-            # Считаем время доставки(оверол)
+                        # Время доставки по О.У как в ТЗ
+                        delivery_time = DeliverySystem.calculate_delivery_time(self.coords, user.coords)
+                        if rndm == "Курьер не пришел":
+                            print("Курьер не пришел! Мы обязательно примем меры, к сожалению заказ будет отменен")
+                            user_order.delivery_status = "Курьер не явился на выдачу"
+                            user_order.delivery_time = None
+                            courier.set_status("Уволен")
+                            self.__orders.append(user_order)
+                            return None, None
+                        else:
+                            courier.get_order(user_order)
 
-            # На один товар 45 секунд
-            storekeeper_time = len(user_order.items) * 45
+                        # Итоговое время доставки переведенное на человеческий вид
+                        correct_delivery_time = time.ctime(int(time.time() + delivery_time + storekeeper_time))
+                        print(f"Ваш заказ будет доставлен в {correct_delivery_time}")
+                        user_order.delivery_time = correct_delivery_time
+                        self.__orders.append(user_order)
+                        break
 
-            # Время доставки по О.У как в ТЗ
-            delivery_time = DeliverySystem.calculate_delivery_time(self.coords, user.coords)
-            courier.get_order(user_order)
+                    else:
+                        user_choise = input(f"Можно вводить только (да/нет)\n")
 
-            # Итоговое время доставки переведенное на человеческий вид
-            correct_delivery_time = time.ctime(int(time.time() + delivery_time + storekeeper_time))
-            print(f"Ваш заказ будет доставлен в {correct_delivery_time}")
-            user_order.delivery_time = correct_delivery_time
-            self.__orders.append(user_order)
         else:
             user_order.delivery_status = "Ошибка"
             print(f"На заказ {user_order.unique_id} данный момент нет доступных сотрудников")
-            return
+            return None, None
 
-        return not_in_store_items
+        return "Success", not_in_store_items
 
     # выдать заказ курьеру
     def set_courier(self, courier: Courier, user_order: Order) -> None:
@@ -77,12 +107,13 @@ class Store:
 
     def delivery_items(self, user_order: Order, user: User):
         # Доставка заказа
-        if user_order.picker and user_order.courier is not None:
-            print(f"Курьер '{user_order.courier}' отправляется к пользователю {user.username}...")
-            print(f"Заказ доставлен пользователю {user.username}.")
-            user.take_order(user_order)
-            user_order.delivery_status = "Доставлен"
-            print(f"Курьер '{user_order.courier}' возвращается обратно...")
+        if user_order.delivery_status != "Курьер не явился на выдачу":
+            if user_order.picker and user_order.courier is not None:
+                print(f"Курьер '{user_order.courier}' отправляется к пользователю {user.username}...")
+                print(f"Заказ доставлен пользователю {user.username}.")
+                user.take_order(user_order)
+                user_order.delivery_status = "Доставлен"
+                print(f"Курьер '{user_order.courier}' возвращается обратно...")
 
     # выдать заказ кладовщику
     def set_storekeeper(self, storekeeper: Storekeeper, user_order: Order) -> None:
@@ -128,7 +159,7 @@ class Store:
             return None, None
 
     def end_shift(self, worker: Worker, user: User):
-        if worker is not None:
+        if worker is not None and worker.get_status() != "Уволен":
             if isinstance(worker, Courier):
                 print("Курьер вернулся на склад")
                 time1 = (DeliverySystem.calculate_delivery_time(self.coords, user_coords=user.coords)) / 60
@@ -175,6 +206,45 @@ class Store:
                 else:
                     worker.set_status("Закончил рабочий день")
                     print(f"{worker.get_username()} закончил свой рабочий день")
+
+    def replenish_store_with_missing_items(
+            self,
+            items_that_we_dont_have_in_store: Tuple[str, list],
+            user_order: Order,
+            provider_stock):
+        if items_that_we_dont_have_in_store[0] != "ERROR":
+            if items_that_we_dont_have_in_store[1] is not None:
+                # Если товара нет, то просим у другого провайдера этот товар
+                to_buy = []
+                for item in items_that_we_dont_have_in_store[1]:
+                    if item in user_order.items:
+                        user_order.items.remove(item)
+                        to_buy.append(
+                            Item(
+                                store_id=None,
+                                provider_id=item.provider_id,
+                                name=item.name,
+                                cost=item.cost
+                            )
+                        )
+                provider = Provider(stock=provider_stock)
+                self.send_request(provider=provider, order=to_buy)
+        else:
+            to_buy = []
+            for item in items_that_we_dont_have_in_store[1]:
+                to_buy.append(
+                    Item(
+                        store_id=None,
+                        provider_id=item.provider_id,
+                        name=item.name,
+                        cost=item.cost
+                    )
+                )
+            provider = Provider(stock=provider_stock)
+            self.send_request(provider=provider, order=to_buy)
+
+    def get_status_of_work(self, items: Tuple[str, list]) -> bool:
+        return False if items[0] == "ERROR" else True
 
     def get_orders(self):
         return self.__orders
