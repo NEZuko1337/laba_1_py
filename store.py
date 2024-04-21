@@ -232,7 +232,9 @@ class Store:
                 else:
                     worker.set_status("Закончил рабочий день")
                     print(f"{worker.get_username()} закончил свой рабочий день")
-
+        else:
+            if worker is not None:
+                print(f"Рабочий {worker.get_username()} уволен из-за невыполнения своей работы")
     def replenish_store_with_missing_items(
             self,
             items_that_we_dont_have_in_store: Tuple[str, list],
