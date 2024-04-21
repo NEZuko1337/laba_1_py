@@ -17,7 +17,7 @@ class Courier(Worker):
         self.shift = minutes
 
     def get_order(self, order):
-        print(f"Ваш заказ собран, вам назначен курьер {self.username}, он доставит ваш заказ в скором времени")
+        print(f"Курьер {self.username} пришел на склад, он доставит ваш заказ в скором времени")
 
     def get_status(self):
         return self.__status

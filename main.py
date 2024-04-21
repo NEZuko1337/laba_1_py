@@ -1,3 +1,5 @@
+import utils
+
 from provider import Provider
 from store import Store
 from user import User
@@ -7,14 +9,64 @@ from storekeeper import Storekeeper
 
 
 def main():
-    store = Store(store_id="73645", coords=(0, 0), stocks=[])
+    store1 = Store(store_id="73645", coords=(0, 0), stocks=[], work_time="8:00 - 21:01")
+    store2 = Store(
+        store_id="746573645",
+        coords=(53, 22),
+        stocks=[
+            Item(store_id="746573645", provider_id="35473758", name="Фен", cost=5200),
+            Item(store_id="746573645", provider_id="35473758", name="Фен", cost=5200),
+            Item(store_id="746573645", provider_id="9856437", name="Чемодан", cost=4200),
+            Item(store_id="746573645", provider_id="9856437", name="Клавиатура", cost=4200),
+        ],
+        work_time="8:00 - 14:00"
+    )
+    store3 = Store(
+        store_id="7364757875",
+        coords=(0, 21),
+        stocks=[
+            Item(store_id="7364757875", provider_id="345", name="Фен", cost=5200),
+        ],
+        work_time="8:00 - 14:00"
+    )
+    store4 = Store(store_id="73649839845", coords=(88, 21), stocks=[], work_time="8:00 - 14:00")
+
+    # Появление пользователя
+    user = User(username="Andrew", coords=(15, 45))
+    items_to_order = [
+        Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
+        Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
+        Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
+        Item(store_id=None, provider_id="9856437", name="Чемодан", cost=4200),
+        Item(store_id=None, provider_id="345", name="Фен", cost=5200),
+        Item(store_id=None, provider_id="345", name="Ноутбук", cost=45200),
+        Item(store_id=None, provider_id="9856437", name="Клавиатура", cost=4200),
+    ]
+
+    # Список магазинов
+    list_of_stores = [store1, store2, store3, store4]
+    # Получаю самый лучший id магазина
+    nearest_store_id = utils.get_nearest_store_id(
+        stores=list_of_stores,
+        user_data=user,
+        user_order=items_to_order
+    )
+    # Меняю id магазина у товаров
+    utils.set_store_for_order(arg=nearest_store_id, items_to_order=items_to_order)
+    # Назначаю магазин
+    store: Store = utils.get_nearest_store_by_nearest_id(list_of_stores=list_of_stores,
+                                                         nearest_store_id=nearest_store_id)
+    store.pre_order_time(user=user)
+    # До пополнения
+    # print(store)
+
+    # Поставщики
     provider_35473758_and_9856437_items = [
         Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
         Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
-        Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
-        Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
-        Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
+        # Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
         Item(store_id=None, provider_id="9856437", name="Клавиатура", cost=4200),
+        # Item(store_id=None, provider_id="9856437", name="Чемодан", cost=4200),
     ]
     provider_345_items = [
         Item(store_id=None, provider_id="345", name="Фен", cost=5200),
@@ -26,11 +78,18 @@ def main():
         Item(store_id=None, provider_id="345", name="Вентилятор", cost=4300),
         Item(store_id=None, provider_id="345", name="Ноутбук", cost=45200),
     ]
-    # До пополнения
-    # print(store)
+    provider_9856437_items = [
+        Item(store_id=None, provider_id="9856437", name="Чемодан", cost=4200),
+        Item(store_id=None, provider_id="9856437", name="Чемодан", cost=4200),
+        Item(store_id=None, provider_id="9856437", name="Чемодан", cost=4200),
+        Item(store_id=None, provider_id="9856437", name="Чемодан", cost=4200),
+        Item(store_id=None, provider_id="9856437", name="Чемодан", cost=4200),
+    ]
     provider = Provider(stock=provider_35473758_and_9856437_items)
     provider2 = Provider(stock=provider_345_items)
     store.send_request(provider=provider, order=provider_35473758_and_9856437_items)
+    store.send_request(provider=provider2, order=provider_345_items)
+
     # После пополнения
     # print(store)
 
@@ -43,161 +102,53 @@ def main():
     storekeeper = Storekeeper(username="Wonderson", shift=7)
     storekeeper1 = Storekeeper(username="Sherlock", shift=5)
 
+    # Берем ребят на работу
     store.take_to_work(storekeeper)
     store.take_to_work(storekeeper1)
     store.take_to_work(courier)
     store.take_to_work(courier1)
     store.take_to_work(courier2)
     store.take_to_work(courier3)
-    # Появление пользователя
-    items_to_order = [
-        Item(store_id="73645", provider_id="35473758", name="Фен", cost=5200),
-        Item(store_id="73645", provider_id="35473758", name="Фен", cost=5200),
-        Item(store_id="73645", provider_id="9856437", name="Чемодан", cost=4200),
-        Item(store_id="73645", provider_id="345", name="Фен", cost=5200),
-        Item(store_id="73645", provider_id="345", name="Ноутбук", cost=45200),
-    ]
-    items_to_order2 = [
-        Item(store_id="73645", provider_id="35473758", name="Фен", cost=5200),
-        Item(store_id="73645", provider_id="35473758", name="Фен", cost=5200),
-        Item(store_id="73645", provider_id="35473758", name="Фен", cost=5200),
-        Item(store_id="73645", provider_id="345", name="Вентилятор", cost=4300),
-        Item(store_id="73645", provider_id="9856437", name="Клавиатура", cost=4200),
 
-    ]
-    user = User(username="Andrew", coords=(15, 45))
-    user2 = User(username="Anton", coords=(73, 44))
+    # Делаем заказ
     user_order = user.make_order(items_to_order)
-    user_order2 = user2.make_order(items_to_order2)
 
     # Тут идет основное принятие заказа, плюс формирование, того, чего не хвататет
     items_that_we_dont_have_in_store = store.take_order(user_order=user_order, user=user)
-    items_that_we_dont_have_in_store_for_second_order = store.take_order(user_order=user_order2, user=user2)
 
-    # Если товара нет, то просим у другого провайдера этот товар
-    if items_that_we_dont_have_in_store:
-        to_buy = []
-        for item in items_that_we_dont_have_in_store:
-            user_order.items.remove(item)
-            to_buy.append(
-                Item(
-                    store_id=None,
-                    provider_id=item.provider_id,
-                    name=item.name,
-                    cost=item.cost
-                )
-            )
-        pr = Provider(stock=provider_35473758_and_9856437_items)
-        prov = Provider(stock=provider_345_items)
-        store.send_request(provider=prov, order=to_buy)
-        store.send_request(provider=pr, order=to_buy)
+    # Пополняемся тем, чего нет в магазине в целом, т.е тем, что было в заказе,
+    # но не было в магазине у всех поставщиков(ниже их 3)
+    store.replenish_store_with_missing_items(
+        items_that_we_dont_have_in_store=items_that_we_dont_have_in_store,
+        user_order=user_order,
+        provider_stock=provider_345_items
+    )
+    store.replenish_store_with_missing_items(
+        items_that_we_dont_have_in_store=items_that_we_dont_have_in_store,
+        user_order=user_order,
+        provider_stock=provider_35473758_and_9856437_items
+    )
+    store.replenish_store_with_missing_items(
+        items_that_we_dont_have_in_store=items_that_we_dont_have_in_store,
+        user_order=user_order,
+        provider_stock=provider_9856437_items
+    )
 
-    if items_that_we_dont_have_in_store_for_second_order:
-        to_buy = []
-        for item in items_that_we_dont_have_in_store_for_second_order:
-            user_order2.items.remove(item)
-            to_buy.append(
-                Item(
-                    store_id=None,
-                    provider_id=item.provider_id,
-                    name=item.name,
-                    cost=item.cost
-                )
-            )
-        pr = Provider(stock=provider_35473758_and_9856437_items)
-        prov = Provider(stock=provider_345_items)
-        store.send_request(provider=prov, order=to_buy)
-        store.send_request(provider=pr, order=to_buy)
+    # Получаю тут статус, если есть ошибка, т.е отказ от товара, тогда не доставляю и не плачу
+    if store.get_status_of_work(items=items_that_we_dont_have_in_store):
+        # Пополняемся старым товаром
+        store.send_request(provider=provider, order=items_to_order)
+        store.send_request(provider=provider2, order=items_to_order)
+        store.delivery_items(user_order=user_order, user=user)
 
-    # Пополняемся старым товаром
-    store.send_request(provider=provider, order=items_to_order)
-    store.send_request(provider=provider, order=items_to_order2)
-    store.send_request(provider=provider2, order=items_to_order)
-    store.send_request(provider=provider2, order=items_to_order2)
-
-    store.delivery_items(user_order=user_order, user=user)
-    store.delivery_items(user_order=user_order2, user=user2)
-
-    store.end_shift(worker=user_order.courier, user=user)
-    store.end_shift(worker=user_order.picker, user=user)
-    store.end_shift(worker=user_order2.courier, user=user2)
-    store.end_shift(worker=user_order2.picker, user=user2)
+        store.end_shift(worker=user_order.courier, user=user)
+        store.end_shift(worker=user_order.picker, user=user)
 
     print()
     print(user_order)
-    print()
-    print(user_order2)
-    print()
-    user_order3 = user2.make_order(items_to_order2)
-    items_that_we_dont_have_for_third_time = store.take_order(user_order=user_order3, user=user2)
-    if items_that_we_dont_have_for_third_time:
-        to_buy = []
-        for item in items_that_we_dont_have_for_third_time:
-            user_order.items.remove(item)
-            to_buy.append(
-                Item(
-                    store_id=None,
-                    provider_id=item.provider_id,
-                    name=item.name,
-                    cost=item.cost
-                )
-            )
-        pr = Provider(stock=provider_35473758_and_9856437_items)
-        prov = Provider(stock=provider_345_items)
-        store.send_request(provider=prov, order=to_buy)
-        store.send_request(provider=pr, order=to_buy)
-
-    store.send_request(provider=provider, order=items_to_order2)
-    store.send_request(provider=provider2, order=items_to_order2)
-
-    store.delivery_items(user_order=user_order3, user=user2)
-
-    store.end_shift(worker=user_order3.courier, user=user2)
-    store.end_shift(worker=user_order3.picker, user=user2)
-
-    print()
-    print(user_order3)
+    # Магазин в самом конце
+    # print(store)
 
 
 if __name__ == '__main__':
     main()
-# import time
-#
-#
-# def time_decorator(fn):
-#     def inner(*args, **kwargs):
-#         start_time = time.time()
-#         res = fn(*args, **kwargs)
-#         end_time = time.time()
-#         dt = end_time - start_time
-#         print(dt)
-#         return res
-#     return inner
-#
-#
-# @time_decorator
-# def fn(n):
-#     sum = 0
-#     for i in range(n):
-#         sum += i
-#     return sum
-#
-#
-# print("Время работы:")
-# fn(10000000)
-
-
-# def decorator(fn):
-#     def wrapper(*args, **kwargs):
-#         print(f"{fn.__name__} - Название функции\n{args} - неименнованные аргументы\n{kwargs} - именнованные аргументы")
-#         res = fn(*args, **kwargs)
-#         return res
-#     return wrapper
-#
-#
-# @decorator
-# def test_fn(*args, **kwargs):
-#     print("Я функция, обернутая в декоратор")
-#
-#
-# test_fn(1,2,3,4,5, a=15, b=17)
