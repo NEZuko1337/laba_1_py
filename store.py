@@ -93,6 +93,29 @@ class Store:
 
                     else:
                         user_choise = input(f"Можно вводить только (да/нет)\n")
+            else:
+                storekeeper.get_order(user_order)
+                # Считаем время доставки(оверол)
+                # На один товар 45 секунд
+                storekeeper_time = len(user_order.items) * 45
+
+                # Время доставки по О.У как в ТЗ
+                delivery_time = DeliverySystem.calculate_delivery_time(self.coords, user.coords)
+                if rndm == "Курьер не пришел":
+                    print("Курьер не пришел! Мы обязательно примем меры, к сожалению заказ будет отменен")
+                    user_order.delivery_status = "Курьер не явился на выдачу"
+                    user_order.delivery_time = None
+                    courier.set_status("Уволен")
+                    self.__orders.append(user_order)
+                    return None, None
+                else:
+                    courier.get_order(user_order)
+
+                # Итоговое время доставки переведенное на человеческий вид
+                correct_delivery_time = time.ctime(int(time.time() + delivery_time + storekeeper_time))
+                print(f"Ваш заказ будет доставлен в {correct_delivery_time}")
+                user_order.delivery_time = correct_delivery_time
+                self.__orders.append(user_order)
 
         else:
             user_order.delivery_status = "Ошибка"
@@ -227,6 +250,15 @@ class Store:
                                 cost=item.cost
                             )
                         )
+                    else:
+                        to_buy.append(
+                            Item(
+                                store_id=None,
+                                provider_id=item.provider_id,
+                                name=item.name,
+                                cost=item.cost
+                            )
+                        )
                 provider = Provider(stock=provider_stock)
                 self.send_request(provider=provider, order=to_buy)
         else:
@@ -248,6 +280,12 @@ class Store:
 
     def get_orders(self):
         return self.__orders
+
+    def get_stocks(self):
+        return self.__stocks
+
+    def pre_order_time(self, user: User) -> None:
+        print(f"Примерное время доставки заказа от магазина {self.__store_id} - {(DeliverySystem.calculate_delivery_time(store_coords=self.coords, user_coords=user.coords) / 60)} минут")
 
     def __str__(self):
         return f'{[f"{item.name}/его стоимость: {item.cost}р/айди магазина: {item.store_id}/поставщик: {item.provider_id}/" for item in self.__stocks]}'
