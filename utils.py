@@ -22,7 +22,8 @@ def get_nearest_store_id(stores, user_order: List[Item], user_data: User):
     for store in stores:
         if store_working_now(store):
             # Получили время в секундах
-            time_for_order = DeliverySystem.calculate_delivery_time(store_coords=store.coords, user_coords=user_data.coords)
+            time_for_order = DeliverySystem.calculate_delivery_time(store_coords=store.coords,
+                                                                    user_coords=user_data.coords)
 
             # Текущий товар магазина
             store_stocks = store.get_stocks()

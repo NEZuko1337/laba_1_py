@@ -1,4 +1,4 @@
-from pprint import pprint
+import utils
 
 from provider import Provider
 from store import Store
@@ -6,7 +6,6 @@ from user import User
 from item import Item
 from courier import Courier
 from storekeeper import Storekeeper
-import utils
 
 
 def main():
@@ -20,7 +19,7 @@ def main():
             Item(store_id="746573645", provider_id="9856437", name="Чемодан", cost=4200),
             Item(store_id="746573645", provider_id="9856437", name="Клавиатура", cost=4200),
         ],
-        work_time="8:00 - 20:00"
+        work_time="8:00 - 14:00"
     )
     store3 = Store(
         store_id="7364757875",
@@ -28,9 +27,9 @@ def main():
         stocks=[
             Item(store_id="7364757875", provider_id="345", name="Фен", cost=5200),
         ],
-        work_time="8:00 - 20:00"
+        work_time="8:00 - 14:00"
     )
-    store4 = Store(store_id="73649839845", coords=(88, 21), stocks=[], work_time="8:00 - 20:00")
+    store4 = Store(store_id="73649839845", coords=(88, 21), stocks=[], work_time="8:00 - 14:00")
 
     # Появление пользователя
     user = User(username="Andrew", coords=(15, 45))
@@ -55,18 +54,19 @@ def main():
     # Меняю id магазина у товаров
     utils.set_store_for_order(arg=nearest_store_id, items_to_order=items_to_order)
     # Назначаю магазин
-    store: Store = utils.get_nearest_store_by_nearest_id(list_of_stores=list_of_stores, nearest_store_id=nearest_store_id)
+    store: Store = utils.get_nearest_store_by_nearest_id(list_of_stores=list_of_stores,
+                                                         nearest_store_id=nearest_store_id)
     store.pre_order_time(user=user)
     # До пополнения
-    #print(store)
+    # print(store)
 
     # Поставщики
     provider_35473758_and_9856437_items = [
         Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
         Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
-        Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
+        # Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
         Item(store_id=None, provider_id="9856437", name="Клавиатура", cost=4200),
-        #Item(store_id=None, provider_id="9856437", name="Чемодан", cost=4200),
+        # Item(store_id=None, provider_id="9856437", name="Чемодан", cost=4200),
     ]
     provider_345_items = [
         Item(store_id=None, provider_id="345", name="Фен", cost=5200),
@@ -91,7 +91,7 @@ def main():
     store.send_request(provider=provider2, order=provider_345_items)
 
     # После пополнения
-    #print(store)
+    # print(store)
 
     # Курьер и кладовщик работают независимо друг от друга
     courier = Courier(username="Nilson", shift=2)

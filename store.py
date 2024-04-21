@@ -58,7 +58,8 @@ class Store:
             if not_in_store_items:
                 print(
                     f"Доставка {user_order.unique_id}:\n К сожалению некоторых товаров нет в наличии, мы можем доставить к вам все, кроме: {[item for item in not_in_store_items]}")
-                user_choise = input(f" Хотите ли вы {user.username}, чтобы мы доставили к вам имеющиеся товары (да/нет)\n")
+                user_choise = input(
+                    f" Хотите ли вы {user.username}, чтобы мы доставили к вам имеющиеся товары (да/нет)\n")
                 while user_choise.lower not in ["нет", "да"]:
                     if user_choise.lower() == "нет":
                         user_order.delivery_status = "Отменен пользователем"
@@ -155,8 +156,10 @@ class Store:
         available_storekeepers = [worker for worker in self.__workers if
                                   isinstance(worker, Storekeeper) and worker.get_status() == "Свободен"]
         if available_couriers and available_storekeepers:
-            time_for_delivery = (DeliverySystem.calculate_delivery_time(store_coords=self.coords, user_coords=user.coords)) / 60
-            time_for_return = (DeliverySystem.wait_for_return(courier_coords=user.coords, store_coords=self.coords)) / 60
+            time_for_delivery = (DeliverySystem.calculate_delivery_time(store_coords=self.coords,
+                                                                        user_coords=user.coords)) / 60
+            time_for_return = (DeliverySystem.wait_for_return(courier_coords=user.coords,
+                                                              store_coords=self.coords)) / 60
             overall_time_for_courier = time_for_delivery + time_for_return
             courier, storekeeper = None, None
             for cur in available_couriers:
@@ -167,7 +170,7 @@ class Store:
                     courier = cur
                     break
             for storkep in available_storekeepers:
-                if storkep.get_shift() * 60 < (45 * len(user_order.items))/60:
+                if storkep.get_shift() * 60 < (45 * len(user_order.items)) / 60:
                     continue
                 else:
                     storkep.set_status("Занят")
@@ -285,7 +288,8 @@ class Store:
         return self.__stocks
 
     def pre_order_time(self, user: User) -> None:
-        print(f"Примерное время доставки заказа от магазина {self.__store_id} - {(DeliverySystem.calculate_delivery_time(store_coords=self.coords, user_coords=user.coords) / 60)} минут")
+        print(
+            f"Примерное время доставки заказа от магазина {self.__store_id} - {(DeliverySystem.calculate_delivery_time(store_coords=self.coords, user_coords=user.coords) / 60)} минут")
 
     def __str__(self):
         return f'{[f"{item.name}/его стоимость: {item.cost}р/айди магазина: {item.store_id}/поставщик: {item.provider_id}/" for item in self.__stocks]}'
