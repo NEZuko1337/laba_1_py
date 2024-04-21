@@ -6,14 +6,13 @@ from courier import Courier
 from item import Item
 
 
-
 @dataclass
 class Order:
     # Что находится в заказе? Статус доставки, список товаров, время создания-время доставки, кто собирал-доставлял
     unique_id: int | str
     delivery_status: str
     items: List[Item]
-    creation_time: float| int | None | str
+    creation_time: float | int | None | str
     delivery_time: float | None | int | str
     picker: Storekeeper | None
     courier: Courier | None
