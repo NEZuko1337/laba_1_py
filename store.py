@@ -42,6 +42,10 @@ class Store:
     # принять заказ и начать его обрабатывать
     def take_order(self, user_order: Order, user: User):
         # Меняем статус заказа
+        if not self.__stocks:
+            user_order.delivery_status = "Ошибка, нет товаров у поставщика, нечего заказывать!"
+            user_order.items = []
+            return
         not_in_store_items = []
         courier, storekeeper = self.get_worker(user_order=user_order, user=user)
         if courier and storekeeper:
@@ -235,53 +239,56 @@ class Store:
         else:
             if worker is not None:
                 print(f"Рабочий {worker.get_username()} уволен из-за невыполнения своей работы")
+
     def replenish_store_with_missing_items(
             self,
             items_that_we_dont_have_in_store: Tuple[str, list],
             user_order: Order,
             provider_stock):
-        if items_that_we_dont_have_in_store[0] != "ERROR":
-            if items_that_we_dont_have_in_store[1] is not None:
-                # Если товара нет, то просим у другого провайдера этот товар
+        if items_that_we_dont_have_in_store is not None:
+            if items_that_we_dont_have_in_store[0] != "ERROR":
+                if items_that_we_dont_have_in_store[1] is not None:
+                    # Если товара нет, то просим у другого провайдера этот товар
+                    to_buy = []
+                    for item in items_that_we_dont_have_in_store[1]:
+                        if item in user_order.items:
+                            user_order.items.remove(item)
+                            to_buy.append(
+                                Item(
+                                    store_id=None,
+                                    provider_id=item.provider_id,
+                                    name=item.name,
+                                    cost=item.cost
+                                )
+                            )
+                        else:
+                            to_buy.append(
+                                Item(
+                                    store_id=None,
+                                    provider_id=item.provider_id,
+                                    name=item.name,
+                                    cost=item.cost
+                                )
+                            )
+                    provider = Provider(stock=provider_stock)
+                    self.send_request(provider=provider, order=to_buy)
+            else:
                 to_buy = []
                 for item in items_that_we_dont_have_in_store[1]:
-                    if item in user_order.items:
-                        user_order.items.remove(item)
-                        to_buy.append(
-                            Item(
-                                store_id=None,
-                                provider_id=item.provider_id,
-                                name=item.name,
-                                cost=item.cost
-                            )
+                    to_buy.append(
+                        Item(
+                            store_id=None,
+                            provider_id=item.provider_id,
+                            name=item.name,
+                            cost=item.cost
                         )
-                    else:
-                        to_buy.append(
-                            Item(
-                                store_id=None,
-                                provider_id=item.provider_id,
-                                name=item.name,
-                                cost=item.cost
-                            )
-                        )
+                    )
                 provider = Provider(stock=provider_stock)
                 self.send_request(provider=provider, order=to_buy)
-        else:
-            to_buy = []
-            for item in items_that_we_dont_have_in_store[1]:
-                to_buy.append(
-                    Item(
-                        store_id=None,
-                        provider_id=item.provider_id,
-                        name=item.name,
-                        cost=item.cost
-                    )
-                )
-            provider = Provider(stock=provider_stock)
-            self.send_request(provider=provider, order=to_buy)
 
     def get_status_of_work(self, items: Tuple[str, list]) -> bool:
-        return False if items[0] == "ERROR" else True
+        if items is not None:
+            return False if items[0] == "ERROR" else True
 
     def get_orders(self):
         return self.__orders

@@ -19,7 +19,7 @@ def main():
             Item(store_id="746573645", provider_id="9856437", name="Чемодан", cost=4200),
             Item(store_id="746573645", provider_id="9856437", name="Клавиатура", cost=4200),
         ],
-        work_time="8:00 - 14:00"
+        work_time="8:00 - 22:00"
     )
     store3 = Store(
         store_id="7364757875",
@@ -27,9 +27,9 @@ def main():
         stocks=[
             Item(store_id="7364757875", provider_id="345", name="Фен", cost=5200),
         ],
-        work_time="8:00 - 14:00"
+        work_time="8:00 - 22:00"
     )
-    store4 = Store(store_id="73649839845", coords=(88, 21), stocks=[], work_time="8:00 - 14:00")
+    store4 = Store(store_id="73649839845", coords=(88, 21), stocks=[], work_time="8:00 - 22:00")
 
     # Появление пользователя
     user = User(username="Andrew", coords=(15, 45))
@@ -64,7 +64,7 @@ def main():
     provider_35473758_and_9856437_items = [
         Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
         Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
-        # Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
+        Item(store_id=None, provider_id="35473758", name="Фен", cost=5200),
         Item(store_id=None, provider_id="9856437", name="Клавиатура", cost=4200),
         # Item(store_id=None, provider_id="9856437", name="Чемодан", cost=4200),
     ]
